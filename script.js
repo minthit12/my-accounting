@@ -1,27 +1,21 @@
-
-
 let transactions = JSON.parse(localStorage.getItem('myTransactions')) || [];
 let pageHistory = [{ page: 1 }]; 
 
 function initApp() {
     const selector = document.getElementById('monthSelector');
-    if (!selector.value) {
+    if (selector && !selector.value) {
         let now = new Date();
         selector.value = now.getFullYear() + "-" + String(now.getMonth() + 1).padStart(2, '0');
     }
-    if (!document.getElementById('dateIn').value) {
+    const dateIn = document.getElementById('dateIn');
+    if (dateIn && !dateIn.value) {
         let d = new Date();
-        document.getElementById('dateIn').value = String(d.getDate()).padStart(2, '0') + '/' + String(d.getMonth() + 1).padStart(2, '0') + '/' + d.getFullYear();
+        dateIn.value = String(d.getDate()).padStart(2, '0') + '/' + String(d.getMonth() + 1).padStart(2, '0') + '/' + d.getFullYear();
     }
     renderSummary();
     renderGroupLists();
     
-    // Dropdown စာရင်းဟောင်းကြီးတွေ အောက်ကို ဆင်းမလာအောင် ပိတ်လိုက်ခြင်း
-    const nameInput = document.getElementById('nameIn');
-    const noteInput = document.getElementById('noteIn');
-    if(nameInput) nameInput.setAttribute('autocomplete', 'on'); 
-    if(noteInput) noteInput.setAttribute('autocomplete', 'on');
-
+    // Browser History ကို Back ခလုတ်အတွက် သတ်မှတ်ခြင်း
     window.history.replaceState({ step: 1 }, "");
 }
 
@@ -41,7 +35,8 @@ window.onpopstate = function(event) {
 function renderCurrentState() {
     const currentState = pageHistory[pageHistory.length - 1];
     document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-    document.getElementById('page' + currentState.page).classList.add('active');
+    const targetPage = document.getElementById('page' + currentState.page);
+    if (targetPage) targetPage.classList.add('active');
     
     if (currentState.page === 1) {
         renderSummary();
@@ -58,50 +53,68 @@ function addNewTransaction() {
     const dateStr = document.getElementById('dateIn').value.trim();
     const name = document.getElementById('nameIn').value.trim();
     const note = document.getElementById('noteIn').value.trim();
-    const amount = parseInt(document.getElementById('amountIn').value);
+    const amountVal = document.getElementById('amountIn').value;
+    const amount = parseInt(amountVal);
     const type = document.getElementById('typeIn').value;
 
-    if(dateStr && name && amount) {
+    if(dateStr && name && !isNaN(amount)) {
         const parts = dateStr.split('/');
         let monthKey = (parts.length === 3) ? parts[2] + "-" + parts[1].padStart(2, '0') : "";
         transactions.push({ id: Date.now(), date: dateStr, monthKey: monthKey, name: name, type: type, amount: amount, note: note });
         saveData();
         clearFields();
         alert("စာရင်းသွင်းပြီးပါပြီ");
-    } else { alert("အချက်အလက်ပြည့်စုံစွာဖြည့်ပါ"); }
+    } else { 
+        alert("အချက်အလက်ပြည့်စုံစွာဖြည့်ပါ"); 
+    }
 }
 
 function saveData() {
     localStorage.setItem('myTransactions', JSON.stringify(transactions));
-    renderCurrentState();
+    renderSummary();
+    renderGroupLists();
 }
 
 function renderSummary() {
-    const m = document.getElementById('monthSelector').value;
+    const mSelector = document.getElementById('monthSelector');
+    if (!mSelector) return;
+    const m = mSelector.value;
     const currentData = transactions.filter(t => t.monthKey === m);
     const inc = currentData.filter(t => t.type === 'income').reduce((s,t)=> s+t.amount, 0);
     const exp = currentData.filter(t => t.type === 'expense').reduce((s,t)=> s+t.amount, 0);
-    document.getElementById('totalIncome').innerText = inc.toLocaleString();
-    document.getElementById('totalExpense').innerText = exp.toLocaleString();
+    
+    if(document.getElementById('totalIncome')) document.getElementById('totalIncome').innerText = inc.toLocaleString();
+    if(document.getElementById('totalExpense')) document.getElementById('totalExpense').innerText = exp.toLocaleString();
     if(document.getElementById('monthBalance')) document.getElementById('monthBalance').innerText = (inc - exp).toLocaleString();
+
     const allInc = transactions.filter(t => t.type === 'income').reduce((s,t)=> s+t.amount, 0);
     const allExp = transactions.filter(t => t.type === 'expense').reduce((s,t)=> s+t.amount, 0);
     if(document.getElementById('mainOverallBalance')) document.getElementById('mainOverallBalance').innerText = (allInc - allExp).toLocaleString();
 }
 
 function renderGroupLists() {
-    const m = document.getElementById('monthSelector').value;
+    const mSelector = document.getElementById('monthSelector');
+    if (!mSelector) return;
+    const m = mSelector.value;
     const data = transactions.filter(t => t.monthKey === m);
+    
     const names = [...new Set(data.map(t => t.name))];
-    document.getElementById('memberListContainer').innerHTML = names.map(n => {
-        const sum = data.filter(t => t.name === n).reduce((s,t)=> s + (t.type==='income'?t.amount:-t.amount), 0);
-        return `<div class="list-item" onclick="showFirstLevel('name', '${n}')"><span>${n}</span><b>${sum.toLocaleString()}</b></div>`;
-    }).join('') || '<p style="text-align:center;padding:10px;color:#888;">မရှိပါ။</p>';
+    const memberContainer = document.getElementById('memberListContainer');
+    if (memberContainer) {
+        memberContainer.innerHTML = names.map(n => {
+            const sum = data.filter(t => t.name === n).reduce((s,t)=> s + (t.type==='income'?t.amount:-t.amount), 0);
+            return `<div class="list-item" onclick="showFirstLevel('name', '${n}')"><span>${n}</span><b>${sum.toLocaleString()}</b></div>`;
+        }).join('') || '<p style="text-align:center;padding:10px;color:#888;">မရှိပါ။</p>';
+    }
+
     const notes = [...new Set(data.map(t => t.note).filter(n => n !== ""))];
-    document.getElementById('noteListContainer').innerHTML = notes.map(n => {
-        const sum = data.filter(t => t.note === n).reduce((s,t)=> s+t.amount, 0);
-        return `<div class="list-item" onclick="showFirstLevel('note', '${n}')"><span>${n}</span><b>${sum.toLocaleString()}</b></div>`;
-    }).join('') || '<p style="text-align:center;padding:10px;color:#888;">မရှိပါ။</p>';
+    const noteContainer = document.getElementById('noteListContainer');
+    if (noteContainer) {
+        noteContainer.innerHTML = notes.map(n => {
+            const sum = data.filter(t => t.note === n).reduce((s,t)=> s+t.amount, 0);
+            return `<div class="list-item" onclick="showFirstLevel('note', '${n}')"><span>${n}</span><b>${sum.toLocaleString()}</b></div>`;
+        }).join('') || '<p style="text-align:center;padding:10px;color:#888;">မရှိပါ။</p>';
+    }
 }
 
 function showFirstLevel(filterType, value) { navigateTo({ page: 2, type: 'firstLevel', filterType: filterType, value: value }); }
@@ -164,11 +177,16 @@ function buildMonthlyBalancePage() {
 function deleteItem(id) {
     if(confirm("ဖျက်မှာ သေချာပါသလား?")) { 
         transactions = transactions.filter(t => t.id !== id); 
-        saveData(); 
-        goBack(); 
+        localStorage.setItem('myTransactions', JSON.stringify(transactions));
+        pageHistory.pop();
+        renderCurrentState();
     }
 }
 
-function clearFields() { document.getElementById('nameIn').value = ''; document.getElementById('noteIn').value = ''; document.getElementById('amountIn').value = ''; }
+function clearFields() { 
+    document.getElementById('nameIn').value = ''; 
+    document.getElementById('noteIn').value = ''; 
+    document.getElementById('amountIn').value = ''; 
+}
 
 window.onload = initApp;
