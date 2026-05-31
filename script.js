@@ -1,4 +1,5 @@
-let transactions = JSON.parse(localStorage.getItem('myTransactions')) || [];
+
+    let transactions = JSON.parse(localStorage.getItem('myTransactions')) || [];
 let pageHistory = []; 
 
 function initApp() {
@@ -13,7 +14,7 @@ function initApp() {
     }
     renderSummary();
     renderGroupLists();
-    updateAutoSuggest();
+    updateAutoSuggest(); // စဖွင့်ချင်းမှာ နာမည်ဟောင်းစာရင်းတွေ ထည့်ပေးရန်
 }
 
 function navigateTo(pageState) {
@@ -63,8 +64,10 @@ function addNewTransaction() {
         const parts = dateStr.split('/');
         let monthKey = (parts.length === 3) ? parts[2] + "-" + parts[1].padStart(2, '0') : "";
         transactions.push({ id: Date.now(), date: dateStr, monthKey: monthKey, name: name, type: type, amount: amount, note: note });
+        
         saveData();
         clearFields();
+        updateAutoSuggest(); // စာရင်းအသစ်သွင်းပြီးတာနဲ့ နာမည်ဟောင်းစာရင်းကို ချက်ချင်း Update လုပ်ရန်
         alert("စာရင်းသွင်းပြီးပါပြီ");
     } else { alert("အချက်အလက်ပြည့်စုံစွာဖြည့်ပါ"); }
 }
@@ -182,6 +185,7 @@ function saveInlineEdit(id) {
             transactions[index].date = newDate;
             transactions[index].amount = newAmount;
             saveData();
+            updateAutoSuggest(); // ပြင်ဆင်ပြီးရင်လည်း နာမည်စာရင်းကို ပြန်ပြင်ရန်
             alert("ပြင်ဆင်ပြီးပါပြီ");
         }
     } else { alert("အချက်အလက် မှန်ကန်စွာ ဖြည့်စွက်ပါ"); }
@@ -210,7 +214,12 @@ function buildMonthlyBalancePage() {
 }
 
 function deleteItem(id) {
-    if(confirm("ဖျက်မှာ သေချာပါသလား?")) { transactions = transactions.filter(t => t.id !== id); saveData(); goBack(); }
+    if(confirm("ဖျက်မှာ သေချာပါသလား?")) { 
+        transactions = transactions.filter(t => t.id !== id); 
+        saveData(); 
+        updateAutoSuggest();
+        goBack(); 
+    }
 }
 
 function updateAutoSuggest() {
@@ -221,15 +230,12 @@ function updateAutoSuggest() {
 function clearFields() { document.getElementById('nameIn').value = ''; document.getElementById('noteIn').value = ''; document.getElementById('amountIn').value = ''; }
 
 window.onload = function() { pageHistory = [{ page: 1 }]; initApp(); };
-// ဖုန်းရဲ့ Hardware Back Button ကို ဆော့ဝဲလ်ထဲက နောက်ပြန်ခလုတ်နဲ့ ချိတ်ဆက်ခြင်း
+
+// ဖုန်းရဲ့ Hardware Back Button ချိတ်ဆက်မှု
 window.addEventListener('popstate', function (event) {
-    // Back ခလုတ်နှိပ်လိုက်ရင် ကျွန်တော်တို့ဆော့ဝဲလ်ထဲက goBack function ကို ခေါ်ခိုင်းပါမယ်
     if (pageHistory.length > 1) {
         goBack();
-        // Browser က စာမျက်နှာထဲက ထွက်မသွားအောင် တားဆီးရန်
         history.pushState(null, null, window.location.pathname);
     }
 });
-
-// စာမျက်နှာစဖွင့်ချင်းမှာ ပြန်ထွက်မသွားစေဖို့ အခြေအနေတစ်ခု မှတ်ထားခိုင်းခြင်း
 history.pushState(null, null, window.location.pathname);
