@@ -1,4 +1,5 @@
 
+
 let transactions = JSON.parse(localStorage.getItem('myTransactions')) || [];
 let pageHistory = [{ page: 1 }]; 
 
