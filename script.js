@@ -1,6 +1,5 @@
-
-    let transactions = JSON.parse(localStorage.getItem('myTransactions')) || [];
-let pageHistory = []; 
+let transactions = JSON.parse(localStorage.getItem('myTransactions')) || [];
+let pageHistory = [{ page: 1 }]; 
 
 function initApp() {
     const selector = document.getElementById('monthSelector');
@@ -14,11 +13,18 @@ function initApp() {
     }
     renderSummary();
     renderGroupLists();
-    updateAutoSuggest(); // စဖွင့်ချင်းမှာ နာမည်ဟောင်းစာရင်းတွေ ထည့်ပေးရန်
+    updateAutoSuggest();
+    
+    // Browser History ထဲမှာ ပထမဆုံး အခြေအနေကို မှတ်ထားခြင်း
+    if (window.history.state === null) {
+        window.history.replaceState({ step: 1 }, "");
+    }
 }
 
 function navigateTo(pageState) {
     pageHistory.push(pageState);
+    // ဝင်လိုက်တိုင်း Browser History ထဲမှာ အဆင့်တစ်ခု တိုးပေးခြင်း
+    window.history.pushState({ step: pageHistory.length }, "");
     renderCurrentState();
 }
 
@@ -26,14 +32,20 @@ function goBack() {
     if (pageHistory.length > 1) {
         pageHistory.pop(); 
         renderCurrentState(); 
-    } else {
-        pageHistory = [{ page: 1 }];
-        renderCurrentState();
     }
 }
 
+// ဖုန်း Hardware Back ခလုတ်ကို ထိန်းချုပ်ခြင်း
+window.onpopstate = function(event) {
+    if (pageHistory.length > 1) {
+        pageHistory.pop();
+        renderCurrentState();
+    } else {
+        // ပင်မစာမျက်နှာမှာဆိုရင် ဆော့ဝဲလ်ထဲက ထွက်ခွင့်ပေးလိုက်ခြင်း
+    }
+};
+
 function renderCurrentState() {
-    if (pageHistory.length === 0) pageHistory.push({ page: 1 });
     const currentState = pageHistory[pageHistory.length - 1];
     document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
     document.getElementById('page' + currentState.page).classList.add('active');
@@ -67,7 +79,7 @@ function addNewTransaction() {
         
         saveData();
         clearFields();
-        updateAutoSuggest(); // စာရင်းအသစ်သွင်းပြီးတာနဲ့ နာမည်ဟောင်းစာရင်းကို ချက်ချင်း Update လုပ်ရန်
+        updateAutoSuggest();
         alert("စာရင်းသွင်းပြီးပါပြီ");
     } else { alert("အချက်အလက်ပြည့်စုံစွာဖြည့်ပါ"); }
 }
@@ -185,7 +197,7 @@ function saveInlineEdit(id) {
             transactions[index].date = newDate;
             transactions[index].amount = newAmount;
             saveData();
-            updateAutoSuggest(); // ပြင်ဆင်ပြီးရင်လည်း နာမည်စာရင်းကို ပြန်ပြင်ရန်
+            updateAutoSuggest();
             alert("ပြင်ဆင်ပြီးပါပြီ");
         }
     } else { alert("အချက်အလက် မှန်ကန်စွာ ဖြည့်စွက်ပါ"); }
@@ -229,13 +241,4 @@ function updateAutoSuggest() {
 
 function clearFields() { document.getElementById('nameIn').value = ''; document.getElementById('noteIn').value = ''; document.getElementById('amountIn').value = ''; }
 
-window.onload = function() { pageHistory = [{ page: 1 }]; initApp(); };
-
-// ဖုန်းရဲ့ Hardware Back Button ချိတ်ဆက်မှု
-window.addEventListener('popstate', function (event) {
-    if (pageHistory.length > 1) {
-        goBack();
-        history.pushState(null, null, window.location.pathname);
-    }
-});
-history.pushState(null, null, window.location.pathname);
+window.onload = function() { initApp(); };
