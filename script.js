@@ -1,3 +1,4 @@
+
 let transactions = JSON.parse(localStorage.getItem('myTransactions')) || [];
 let pageHistory = [{ page: 1 }]; 
 
@@ -14,8 +15,8 @@ function initApp() {
     }
     renderSummary();
     renderGroupLists();
+    updateAutoSuggest(); // အရင်ရိုက်ဖူးတဲ့ စာလုံးတွေ ပြန်ပေါ်လာအောင် လုပ်ပေးခြင်း
     
-    // Browser History ကို Back ခလုတ်အတွက် သတ်မှတ်ခြင်း
     window.history.replaceState({ step: 1 }, "");
 }
 
@@ -49,6 +50,11 @@ function renderCurrentState() {
     }
 }
 
+function toggleSection(id) {
+    const sec = document.getElementById(id);
+    if(sec) sec.classList.toggle('show');
+}
+
 function addNewTransaction() {
     const dateStr = document.getElementById('dateIn').value.trim();
     const name = document.getElementById('nameIn').value.trim();
@@ -63,6 +69,7 @@ function addNewTransaction() {
         transactions.push({ id: Date.now(), date: dateStr, monthKey: monthKey, name: name, type: type, amount: amount, note: note });
         saveData();
         clearFields();
+        updateAutoSuggest();
         alert("စာရင်းသွင်းပြီးပါပြီ");
     } else { 
         alert("အချက်အလက်ပြည့်စုံစွာဖြည့်ပါ"); 
@@ -178,9 +185,22 @@ function deleteItem(id) {
     if(confirm("ဖျက်မှာ သေချာပါသလား?")) { 
         transactions = transactions.filter(t => t.id !== id); 
         localStorage.setItem('myTransactions', JSON.stringify(transactions));
+        goBack();
+    }
+}
+
+function goBack() {
+    if (pageHistory.length > 1) {
         pageHistory.pop();
         renderCurrentState();
     }
+}
+
+function updateAutoSuggest() {
+    const nameList = document.getElementById('nameList');
+    const noteList = document.getElementById('noteList');
+    if(nameList) nameList.innerHTML = [...new Set(transactions.map(t => t.name))].map(n => `<option value="${n}">`).join('');
+    if(noteList) noteList.innerHTML = [...new Set(transactions.map(t => t.note))].map(n => `<option value="${n}">`).join('');
 }
 
 function clearFields() { 
