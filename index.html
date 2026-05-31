@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="my">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>အိမ်အသုံးစာရင်း</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="page1" class="page active">
+        <div class="header">HOMELIST</div>
+        
+        <div class="main-card">
+            <h3 style="color:#0056b3; margin-bottom:10px;">စာရင်းသစ်သွင်းရန်</h3>
+            <input type="text" id="dateIn">
+            <input type="text" id="nameIn" placeholder="အမည်" list="nameList">
+            <datalist id="nameList"></datalist>
+            <input type="text" id="noteIn" placeholder="အကြောင်းအရာ" list="noteList">
+            <datalist id="noteList"></datalist>
+            <input type="number" id="amountIn" placeholder="ငွေပမာဏ">
+            <select id="typeIn">
+                <option value="income">ဝင်ငွေ</option>
+                <option value="expense" selected>ထွက်ငွေ</option>
+            </select>
+            <button id="addBtn" onclick="addNewTransaction()">စာရင်းသွင်းမည်</button>
+        </div>
+<!-- ရှိသမျှ 'ယခုအထိ စုစုပေါင်းလက်ကျန်' အကွက်ဟောင်းတွေနေရာမှာ ဒီတစ်ခုတည်းကိုပဲ အစားထိုးထည့်ပါ --><div style="padding: 0; text-align: center;">
+    
+    <div onclick="showMonthlyBalances()" 
+         style="cursor: pointer; 
+                background: linear-gradient(135deg, #b0810b, #8a6508); 
+                color: white; 
+                padding: 10px; 
+                border-radius: 8px; 
+                display: inline-block; 
+                width: 95%; 
+                margin-bottom: 5px;
+                box-shadow: 0 2px 4px rgba(0,0,0,0.1); 
+                font-weight: bold; 
+                font-size: 17px;">
+        ယခုအထိ စုစုပေါင်းလက်ကျန်: <span id="mainOverallBalance">0</span> ကျပ်
+    </div>
+
+    <div style="background: #007bff; 
+                color: white; 
+                padding: 10px; 
+                border-radius: 8px; 
+                display: inline-block; 
+                width: 95%; 
+                margin-bottom: 5px;
+                font-weight: bold; 
+                font-size: 17px;">
+        ယခုလ လက်ကျန်ငွေ: <span id="monthBalance">0</span> ကျပ်
+    </div>
+
+</div>
+
+<div style="margin-top: 5px;">
+    </div>
+<div class="filter-box">
+    <label style="font-weight: bold; color: #0056b3; font-size: 18px; display: block; margin-bottom: 8px;">လအလိုက်ရှာရန်</label>
+    <input type="month" id="monthSelector" onchange="initApp()" style="border: 2px solid #0056b3; font-weight: bold;">
+</div>
+        <div class="summary-grid">
+    <div class="s-card inc" onclick="showTypePage('income')">
+        <small style="color: #1e7e34; font-size: 15px; font-weight: bold;">ယခုလ ဝင်ငွေ</small><br>
+        <b id="totalIncome" style="color: #28a745; font-size: 24px; font-weight: 900;">0</b>
+    </div>
+    <div class="s-card exp" onclick="showTypePage('expense')">
+        <small style="color: #bd2130; font-size: 15px; font-weight: bold;">ယခုလ ထွက်ငွေ</small><br>
+        <b id="totalExpense" style="color: #dc3545; font-size: 24px; font-weight: 900;">0</b>
+    </div>
+</div>
+        
+        <div class="list-section">
+            <div class="accordion-header" onclick="toggleSection('memberListContainer')">
+                အမည်အလိုက်ကြည့်ရန် ▼
+            </div>
+            <div id="memberListContainer" class="accordion-content"></div>
+            
+            <div class="accordion-header" onclick="toggleSection('noteListContainer')">
+                အကြောင်းအရာအလိုက်ကြည့်ရန် ▼
+            </div>
+            <div id="noteListContainer" class="accordion-content"></div>
+        </div>
+    </div>
+
+    <div id="page2" class="page">
+        <div class="header">
+            <button class="nav-btn" onclick="goBack()">← ပြန်သွားမည်</button>
+            <span id="detailTitle"></span>
+        </div>
+        <div id="detailListContents"></div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
